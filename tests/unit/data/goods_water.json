@@ -1,0 +1,47 @@
+{
+ "_источник": "goods-app-stage /v2/gate/item/CHANNEL_B2B/12/1429, 01.10.2026 — обрезано до нужных полей",
+ "count": "1",
+ "item": {
+  "1429": {
+   "item": {
+    "id": "1429",
+    "name": "Вода минеральная НАРЗАН сильногазированная, 1л",
+    "isWeight": false,
+    "markType": "WATER",
+    "isAlcohol": false,
+    "weightMeasure": "ST",
+    "goodsType": "1HAW",
+    "barcodes": [
+     {
+      "code": "4600536004105",
+      "type": "HE",
+      "uom": "ST",
+      "main": false,
+      "nonmark": true
+     },
+     {
+      "code": "4600536001012",
+      "type": "HE",
+      "uom": "ST",
+      "main": true,
+      "nonmark": true
+     },
+     {
+      "code": "4600536004006",
+      "type": "HE",
+      "uom": "ST",
+      "main": false,
+      "nonmark": true
+     },
+     {
+      "code": "14600536001019",
+      "type": "IC",
+      "uom": "KAR",
+      "main": true,
+      "nonmark": true
+     }
+    ]
+   }
+  }
+ }
+}

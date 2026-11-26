@@ -1,0 +1,84 @@
+{
+ "_источник": "HAR «Повтор заказа», 29.09.2026: orderLookup, тело cartFromOrderAdd и cartLookup после него",
+ "orderLookup": {
+  "OrderList": [
+   {
+    "Id": "900001126273",
+    "DeliveryType": "delivery",
+    "DeliveryAddressId": 15046759,
+    "DeliveryStoreId": "3429",
+    "PaymentTypeId": 920,
+    "DeliveryDate": "2026-09-29",
+    "DeliveryTimeFrom": "12:00:00",
+    "StatusText": "Оформлен",
+    "Pro": {
+     "vetOwnNeeds": false,
+     "markOwnNeeds": true,
+     "hasVetGoods": true,
+     "hasMarkGoods": false,
+     "importFeedback": true,
+     "isEdoPending": false
+    },
+    "OrderItemList": [
+     {
+      "Id": "520787",
+      "Name": "Кофе зерновой EGOISTE Espresso, 1кг",
+      "Quantity": 1,
+      "QuantityOrigin": "1",
+      "FlagWeightGood": "0",
+      "BaseUnit": "ST",
+      "Numerator": 1,
+      "Denominator": 1
+     },
+     {
+      "Id": "015888",
+      "Name": "Котлетное мясо из говядины ЛЕНТА FRESH бескостное",
+      "Quantity": 2.1,
+      "QuantityOrigin": "3",
+      "FlagWeightGood": "1",
+      "BaseUnit": "KG",
+      "Numerator": 700,
+      "Denominator": 1000
+     }
+    ]
+   }
+  ]
+ },
+ "cartFromOrderAdd_request": {
+  "OrderId": "900001126273",
+  "ForUpdate": false,
+  "Return": {
+   "Cart": 1,
+   "CartItemList": 1,
+   "TotalCost": 1,
+   "Goods": false
+  },
+  "Source": 1
+ },
+ "cartLookup_after": {
+  "CartList": [
+   {
+    "DeliveryType": "delivery",
+    "UserAddressId": "15046759",
+    "DeliveryStoreId": "3429",
+    "TotalCost": "4929.49",
+    "Goods": [
+     {
+      "GoodsItemId": "520787",
+      "Name": "Кофе зерновой EGOISTE Espresso, 1кг",
+      "Quantity": 1,
+      "Numerator": 1,
+      "Denominator": 1
+     },
+     {
+      "GoodsItemId": "015888",
+      "Name": "Котлетное мясо из говядины ЛЕНТА FRESH бескостное",
+      "Quantity": 3,
+      "Numerator": 700,
+      "Denominator": 1000
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,65 @@
+[project]
+name = "lo-api-tests"
+version = "0.1.0"
+description = "API-автотесты B2B-флоу оформления заказа Лента Онлайн"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.6",
+    "allure-pytest>=2.13",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+lo-order = "lo_api.cli.order:main"
+lo-flow = "lo_api.cli.run_flow:main"
+lo-probe = "lo_api.cli.probe_auth:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# ---------------------------------------------------------------------------
+# pytest: единственный источник правды (старый pytest.ini удалён)
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-ra --strict-markers"
+markers = [
+    "smoke: быстрые проверки основного флоу",
+    "regression: регрессионные проверки отдельных шагов",
+    "negative: проверки обработки ошибок",
+    "delivery: сценарии доставки",
+    "pickup: сценарии самовывоза",
+    "creates_order: тест реально создаёт заказ на стенде",
+    "unit: оффлайн-проверки каркаса, без обращения к стенду",
+    "goods: тест сам подменяет сеть Goods; без метки карточка товара в сборке отключена",
+]
+# Логи запросов: включаются по требованию
+#   pytest --log-cli-level=INFO   (сводка запросов)
+#   pytest --log-cli-level=DEBUG  (+ тела запросов и ответов)
+log_cli = false
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s %(levelname)-7s %(name)-22s %(message)s"
+log_cli_date_format = "%H:%M:%S"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # кириллица в строках и комментариях — норма

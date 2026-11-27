@@ -3750,3 +3750,24 @@ def test_guided_partial_quantity_and_validation(cfg, monkeypatch, kind):
         assert bool(picked_issues(order, targets=client.partial_targets)) == (got != 2)
         repair = build_plan(order, resume=True, targets=client.partial_targets)
         assert [t.count for t in repair.tasks] == ([1] if got == 1 else [])
+
+
+def test_order_update_retries_internal_error_with_http_200(cfg, monkeypatch):
+    from lo_api.picking import PickingClient
+
+    calls = []
+    cfg.retry_backoff = 0
+    cfg.workshift_retry_attempts = 2
+
+    def post(self, url, json, **kwargs):
+        calls.append(json)
+        if len(calls) == 1:
+            return _resp(200, {"error": {"message": "Внутренняя ошибка сервиса."}})
+        return _resp(200, {"result": {"updated": True}})
+
+    monkeypatch.setattr(requests.Session, "post", post)
+    result = PickingClient(cfg).set_status("123", "PACKAGING")
+    assert result == {"updated": True}
+    assert [c["method"] for c in calls] == ["orderUpdate", "orderUpdate"]
+    assert calls[0]["params"] == calls[1]["params"]
+    assert calls[0]["id"] != calls[1]["id"]

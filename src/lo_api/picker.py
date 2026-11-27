@@ -93,7 +93,10 @@ def is_transient(status: int, error: Any) -> bool:
     """Стоит ли повторить запрос."""
     if status >= 500:
         return True
-    return any(m in error_text(error).lower() for m in TRANSIENT_MARKERS)
+    message = error_text(error).strip().casefold()
+    if status == 200 and message.rstrip(".") == "внутренняя ошибка сервиса":
+        return True
+    return any(m in message for m in TRANSIENT_MARKERS)
 
 
 class PickerRpc:

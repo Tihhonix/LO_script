@@ -386,6 +386,7 @@ class PickTask:
     batch_marking_assembly: bool | None = None
     mark_type: str = ""
     ordered_count: int = 0
+    shortage_reason: str | None = None
 
     @property
     def position_key(self) -> tuple:
@@ -650,12 +651,15 @@ class PickingClient(PickerRpc):
         Тело — из коллекции PickerApp (orderUpdate MissingReason). На стенде
         так убранная позиция приходит с missingReasonId и countPick = 0.
         """
-        result = self.call("orderUpdate", {"order": {"id": str(order_id), "items": [{
-            "sku": task.sku, "missingReasonId": str(reason_id), "missingReasonComment": "",
-        }]}})
+        result = self.set_missing_reason(order_id, task.sku, reason_id)
         log.info("Убран из заказа: %s (%s) — причина %s", task.sku, task.name,
                  task.missing_reasons.get(str(reason_id), reason_id))
         return result
+
+    def set_missing_reason(self, order_id: str, sku: str, reason_id: str) -> dict:
+        return self.call("orderUpdate", {"order": {"id": str(order_id), "items": [{
+            "sku": sku, "missingReasonId": str(reason_id), "missingReasonComment": "",
+        }]}})
 
     def cancel_reasons(self) -> list[dict]:
         """Причины отмены для приложения сборщика — `[{id, title}]`."""
@@ -1366,6 +1370,13 @@ def _assemble_items(client: PickingClient, order: dict, order_id: str,
                 client.partial_targets[task.position_key] = task
             _pick_task(client, order_id, task)
             log.info("Собрано: %s", task)
+
+        # Причина относится ко всей позиции, даже если собирали с нескольких складов.
+        shortages = {t.order_sku or t.sku: t.shortage_reason for t in plan.tasks
+                     if t.shortage_reason and t.sku not in removed}
+        for sku, reason_id in shortages.items():
+            client.set_missing_reason(order_id, sku, reason_id)
+            log.info("Недобор %s: передана причина %s", sku, reason_id)
 
     # Валидация в SAP нужна любому заказу, а не только партионному: без неё
     # переход в PACKAGING отвергается — «заказ не отправлен в SAP»

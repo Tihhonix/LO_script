@@ -3735,15 +3735,17 @@ def test_log_formats_json_bodies():
 def test_guided_partial_quantity_and_validation(cfg, monkeypatch, kind):
     from lo_api.picking import _assemble_items, build_plan, picked_issues
 
-    item = _ask_item("12", "Товар", 3, isMarking=kind == "peu")
+    item = _ask_item("0012", "Товар", 3, isMarking=kind == "peu")
     order = _ask_order(item)
-    client, sent = _ask_client(cfg, monkeypatch, ["3", "2"])
+    client, sent = _ask_client(cfg, monkeypatch, ["3", "2", "1"])
     monkeypatch.setattr("lo_api.picking._validate_sap", lambda c, o: None)
     _assemble_items(client, order, "order", False, False)
     if kind == "peu":
         assert sum(m == "itemIncreaseByMarking" for m, _ in sent) == 2
     else:
-        assert sent[-1][1]["order"]["items"][0]["stock_count"] == 2
+        assert sent[-2][1]["order"]["items"][0]["stock_count"] == 2
+    assert sent[-1] == ("orderUpdate", {"order": {"id": "order", "items": [{
+        "sku": "0012", "missingReasonId": "3", "missingReasonComment": ""}]}})
 
     for got in (1, 2, 3):
         item["countPick"] = item["stockData"]["records"][0]["countPick"] = got
@@ -3771,3 +3773,20 @@ def test_order_update_retries_internal_error_with_http_200(cfg, monkeypatch):
     assert [c["method"] for c in calls] == ["orderUpdate", "orderUpdate"]
     assert calls[0]["params"] == calls[1]["params"]
     assert calls[0]["id"] != calls[1]["id"]
+
+
+def test_partial_weight_registers_shortage_before_sap(cfg, monkeypatch):
+    from lo_api.picking import _assemble_items
+
+    item = _ask_item("015182", "Томаты", 10000, unit="GW", portion=20)
+    order = _ask_order(item)
+    client, sent = _ask_client(cfg, monkeypatch, ["3", "7200", "1", "1"])
+    monkeypatch.setattr("lo_api.goods.GoodsClient.weight_base_barcode",
+                        lambda *args, **kwargs: "2300001000000")
+    monkeypatch.setattr("lo_api.picking._validate_sap", lambda c, o: c.sap_validate(o))
+    _assemble_items(client, order, "order", False, False)
+    qty, reason, validate = sent[-3:]
+    assert qty[1]["order"]["items"][0]["stock_count"] == 7200
+    assert reason == ("orderUpdate", {"order": {"id": "order", "items": [
+        {"sku": "015182", "missingReasonId": "3", "missingReasonComment": ""}]}})
+    assert validate[0] == "sapValidate"

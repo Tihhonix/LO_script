@@ -500,16 +500,21 @@ class AskDecisions(PickDecisions):
                     units = int(_ask_until_valid("Сколько порций в выбранном весе", "1",
                                                  _int_between(1, min(count, task.units))))
             task.select_count(count, units)
+            task.shortage_reason = self._missing_reason(task, "Причина недобора")
             return None
         if action == 0:
             return None
+        return self._missing_reason(task, "Причина уборки")
+
+    @staticmethod
+    def _missing_reason(task: PickTask, prompt: str) -> str:
         reasons = task.missing_reasons
         if not reasons:
             # Список причин приходит в позиции заказа; если его нет — вводим id
-            return _ask_until_valid("Причина уборки — id (списка причин в заказе нет)",
+            return _ask_until_valid(f"{prompt} — id (списка причин в заказе нет)",
                                     "3", _int_between(1, 999))
         ids = list(reasons)
-        return ids[_choose("Причина:", [f"{str(reasons[i]).strip()} ({i})" for i in ids])]
+        return ids[_choose(prompt, [f"{str(reasons[i]).strip()} ({i})" for i in ids])]
 
     def dairy_mark(self, task: PickTask, barcode: str) -> str:
         mark = _ask(f"Марка молочной продукции {task.sku} (Enter — сгенерировать)")
